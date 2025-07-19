@@ -93,6 +93,10 @@
                     <label class="mr-2">Columns:</label>
                     <input id="cols-input" type="number" min="1" value="5" class="w-16 border rounded px-2 py-1">
                 </div>
+                <div class="flex items-center mb-4">
+                    <input id="allow-rotation" type="checkbox" class="mr-2" checked>
+                    <label for="allow-rotation">Allow item rotation</label>
+                </div>
                 <button id="update-grid" class="w-full bg-blue-500 text-white rounded py-2 hover:bg-blue-600 glow-btn">Update Grid</button>
             </div>
             <div class="flex-1">
@@ -174,7 +178,8 @@
                 this.customModal = document.getElementById('custom-shape-modal');
                 this.customGrid = document.getElementById('custom-grid');
                 this.importPresetsInput = document.getElementById('import-presets');
-                
+                this.allowRotationInput = document.getElementById('allow-rotation');
+                this.allowRotation = true;
                 this.loadPredefinedShapes();
                 this.loadData();
                 this.setupEventListeners();
@@ -207,6 +212,10 @@
                 this.importPresetsInput.addEventListener('change', (e) => this.importPresets(e));
                 document.getElementById('export-presets').addEventListener('click', () => this.exportPresets());
                 window.addEventListener('resize', () => this.drawGrid());
+                this.allowRotationInput.addEventListener('change', () => {
+                    this.allowRotation = this.allowRotationInput.checked;
+                    this.saveData();
+                });
             }
 
             drawGrid() {
@@ -494,8 +503,8 @@
             backtrackingSolver(grid, items, itemIndex = 0) {
                 if (itemIndex >= items.length) return grid;
                 const shape = items[itemIndex].shape;
-
-                for (let k = 0; k < 4; k++) {
+                const maxRot = this.allowRotation ? 4 : 1;
+                for (let k = 0; k < maxRot; k++) {
                     let rotated = shape;
                     for (let i = 0; i < k; i++) {
                         rotated = this.rotateShape(rotated);
@@ -646,6 +655,7 @@
                     })),
                     presets: this.presets,
                     solution: this.solution
+                    ,allowRotation: this.allowRotation
                 };
                 Cookies.set('gridData', JSON.stringify(data), { expires: 365 });
             }
@@ -660,6 +670,8 @@
                     this.items = parsed.items || [];
                     this.presets = parsed.presets || {};
                     this.solution = parsed.solution || null;
+                    this.allowRotation = typeof parsed.allowRotation === 'boolean' ? parsed.allowRotation : true;
+                    this.allowRotationInput.checked = this.allowRotation;
                     document.getElementById('rows-input').value = this.gridRows;
                     document.getElementById('cols-input').value = this.gridCols;
                     this.updateItemList();
