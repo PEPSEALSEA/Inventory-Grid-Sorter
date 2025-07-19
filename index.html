@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Inventory Solver</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <style>
+        canvas { border: 1px solid #d1d5db; }
+        .grid-cell { width: 100%; height: 100%; }
+        .disabled-cell { background-color: #ffcccc; }
+        .item-preview { pointer-events: none; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="flex w-full max-w-5xl bg-white shadow-lg rounded-lg overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-80 bg-white p-4 border-r border-gray-200">
+            <div class="mb-4">
+                <h2 class="text-lg font-bold mb-2">Grid Settings</h2>
+                <div class="flex items-center mb2">
+                    <label class="mr-2">Rows:</label>
+                    <input id="rows-input" type="number" min="1" value="5" class="w-16 border rounded px-2 py-1">
+                </div>
+                <div class="flex items-center mb-4">
+                    <label class="mr-2">Columns:</label>
+                    <input id="cols-input" type="number" min="1" value="5" class="w-16 border rounded px-2 py-1">
+                </div>
+                <button id="update-grid" class="w-full bg-blue-500 text-white rounded py-2 hover:bg-blue-600">Update Grid</button>
+            </div>
+            <div class="flex-1">
+                <h2 class="text-lg font-bold mb-2">Items</h2>
+                <ul id="item-list" class="border rounded max-h-64 overflow-y-auto mb-4"></ul>
+                <div class="flex gap-2">
+                    <button id="add-shape" class="flex-1 bg-blue-500 text-white rounded py-2 hover:bg-blue-600">Add Shape</button>
+                    <button id="delete-selected" class="flex-1 bg-red-500 text-white rounded py-2 hover:bg-red-600">Delete</button>
+                    <button id="delete-preset" class="flex-1 bg-red-500 text-white rounded py-2 hover:bg-red-600">Delete Preset</button>
+                </div>
+                <button id="solve-grid" class="w-full bg-blue-500 text-white rounded py-2 mt-4 hover:bg-blue-600">Solve Grid</button>
+            </div>
+            <div class="mt-4 flex flex-col gap-2">
+                <button id="reset-all" class="w-full bg-yellow-500 text-white rounded py-2 hover:bg-yellow-600">Reset All</button>
+                <button id="clear-cookie" class="w-full bg-red-700 text-white rounded py-2 hover:bg-red-800">Clear Cookie</button>
+                <div class="mt-2">
+                    <label class="block text-xs mb-1">Import Presets (JSON):</label>
+                    <input id="import-presets" type="file" accept="application/json" class="w-full text-xs" />
+                </div>
+            </div>
+        </div>
+        <!-- Main Panel -->
+        <div class="flex-1 p-4">
+            <div class="flex items-center justify-between bg-gray-50 p-2 mb-2">
+                <h2 class="text-lg font-bold">Inventory Grid</h2>
+                <span class="text-sm text-gray-600">Click cells to toggle disable (red)</span>
+            </div>
+            <canvas id="grid-canvas" class="w-full h-[500px]"></canvas>
+        </div>
+    </div>
+
+    <!-- Custom Shape Modal -->
+    <div id="custom-shape-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-lg font-bold mb-4">Create Custom Shape</h2>
+            <div class="mb-4">
+                <div class="flex items-center mb-2">
+                    <label class="mr-2">Rows:</label>
+                    <input id="custom-rows" type="number" min="1" max="10" value="3" class="w-16 border rounded px-2 py-1">
+                </div>
+                <div class="flex items-center mb-2">
+                    <label class="mr-2">Cols:</label>
+                    <input id="custom-cols" type="number" min="1" max="10" value="3" class="w-16 border rounded px-2 py-1">
+                </div>
+                <button id="update-custom-grid" class="bg-blue-500 text-white rounded py-2 px-4 hover:bg-blue-600">Update</button>
+            </div>
+            <div id="custom-grid" class="border rounded p-2 mb-4 grid gap-1"></div>
+            <div class="mb-4">
+                <label class="block mb-1">Preset Name:</label>
+                <input id="preset-name" type="text" class="w-full border rounded px-2 py-1">
+                <label class="flex items-center mt-2">
+                    <input id="save-preset" type="checkbox" class="mr-2">
+                    <span>Save as Preset</span>
+                </label>
+            </div>
+            <div class="flex gap-2">
+                <button id="cancel-custom" class="flex-1 bg-gray-500 text-white rounded py-2 hover:bg-gray-600">Cancel</button>
+                <button id="create-custom" class="flex-1 bg-blue-500 text-white rounded py-2 hover:bg-blue-600">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class GridInventorySolver {
+            constructor() {
+                this.gridRows = 5;
+                this.gridCols = 5;
+                this.items = [];
+                this.presets = {};
+                this.predefinedShapes = {};
+                this.disabledCells = Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
+                this.solution = null;
+                this.selectedItems = new Set();
+                this.colors = ["#FF5733", "#33FF57", "#3357FF", "#F3FF33", "#FF33F6", "#33FFF6", "#F633FF", "#57FF33", "#FF3357", "#33F3FF", "#FF8C00", "#8A2BE2", "#7FFF00", "#DC143C", "00FFFF", "#FF1493", "#FFD700", "#4B0082", "#20B2AA", "#32CD32", "#FF4500", "#2E8B57", "#4682B4", "#8B0000", "#00CED1", "#9400D3", "#008080", "#FF6347", "#ADFF2F", "#8B4513"];
+                
+                this.canvas = document.getElementById('grid-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.itemList = document.getElementById('item-list');
+                this.customModal = document.getElementById('custom-shape-modal');
+                this.customGrid = document.getElementById('custom-grid');
+                this.importPresetsInput = document.getElementById('import-presets');
+                
+                this.loadPredefinedShapes();
+                this.loadData();
+                this.setupEventListeners();
+                this.drawGrid();
+            }
+
+            async loadPredefinedShapes() {
+                try {
+                    const res = await fetch('predefined_shapes.json');
+                    if (res.ok) {
+                        this.predefinedShapes = await res.json();
+                    }
+                } catch (e) {
+                    this.predefinedShapes = {};
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('update-grid').addEventListener('click', () => this.updateGrid());
+                document.getElementById('add-shape').addEventListener('click', (e) => this.showAddShapeMenu(e));
+                document.getElementById('delete-selected').addEventListener('click', () => this.deleteSelected());
+                document.getElementById('delete-preset').addEventListener('click', (e) => this.showDeletePresetMenu(e));
+                document.getElementById('solve-grid').addEventListener('click', () => this.solveGrid());
+                document.getElementById('reset-all').addEventListener('click', () => this.resetAll());
+                document.getElementById('clear-cookie').addEventListener('click', () => this.clearAllData());
+                document.getElementById('update-custom-grid').addEventListener('click', () => this.updateCustomGrid());
+                document.getElementById('cancel-custom').addEventListener('click', () => this.closeCustomModal());
+                document.getElementById('create-custom').addEventListener('click', () => this.createCustomShape());
+                this.canvas.addEventListener('click', (e) => this.onCanvasClick(e));
+                this.itemList.addEventListener('click', (e) => this.onItemClick(e));
+                this.importPresetsInput.addEventListener('change', (e) => this.importPresets(e));
+                window.addEventListener('resize', () => this.drawGrid());
+            }
+
+            drawGrid() {
+                this.canvas.width = this.canvas.clientWidth;
+                this.canvas.height = this.canvas.clientHeight;
+                const cellWidth = this.canvas.width / this.gridCols;
+                const cellHeight = this.canvas.height / this.gridRows;
+
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (let r = 0; r < this.gridRows; r++) {
+                    for (let c = 0; c < this.gridCols; c++) {
+                        const x = c * cellWidth;
+                        const y = r * cellHeight;
+                        this.ctx.fillStyle = this.disabledCells[r][c] === -1 ? '#ffcccc' : '#ffffff';
+                        this.ctx.fillRect(x, y, cellWidth, cellHeight);
+                        this.ctx.strokeStyle = '#d1d5db';
+                        this.ctx.strokeRect(x, y, cellWidth, cellHeight);
+                    }
+                }
+
+                if (this.solution) {
+                    this.displaySolution();
+                } else if (this.selectedItems.size === 1) {
+                    const index = Array.from(this.selectedItems)[0];
+                    this.previewItem(this.items[index]);
+                } else if (this.selectedItems.size > 1) {
+                    const text = `Selected ${this.selectedItems.size} items:\n${Array.from(this.selectedItems).map(i => this.items[i].name).join('\n')}`;
+                    this.ctx.fillStyle = '#333333';
+                    this.ctx.font = '12px Segoe UI';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(text, this.canvas.width / 2, this.canvas.height / 2);
+                }
+            }
+
+            showAddShapeMenu(event) {
+                const menu = document.createElement('div');
+                menu.className = 'absolute bg-white border rounded shadow-lg';
+                menu.style.left = `${event.clientX}px`;
+                menu.style.top = `${event.clientY}px`;
+
+                menu.innerHTML += `<div class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="app.showCustomModal(); document.body.removeChild(this.parentElement)">Custom Shape</div>`;
+                menu.innerHTML += '<hr>';
+                for (const [name, shape] of Object.entries(this.predefinedShapes)) {
+                    menu.innerHTML += `<div class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="app.addPredefinedItem('${name}'); document.body.removeChild(this.parentElement)">${name}</div>`;
+                }
+                menu.innerHTML += '<hr>';
+                for (const name of Object.keys(this.presets)) {
+                    menu.innerHTML += `<div class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="app.addPresetItem('${name}'); document.body.removeChild(this.parentElement)">Preset: ${name}</div>`;
+                }
+
+                document.body.appendChild(menu);
+                setTimeout(() => {
+                    document.addEventListener('click', function handler(e) {
+                        if (!menu.contains(e.target)) {
+                            menu.remove();
+                            document.removeEventListener('click', handler);
+                        }
+                    });
+                }, 0);
+            }
+
+            showDeletePresetMenu(event) {
+                if (Object.keys(this.presets).length === 0) {
+                    alert('No presets to delete.');
+                    return;
+                }
+                const menu = document.createElement('div');
+                menu.className = 'absolute bg-white border rounded shadow-lg';
+                menu.style.left = `${event.clientX}px`;
+                menu.style.top = `${event.clientY}px`;
+
+                for (const name of Object.keys(this.presets)) {
+                    menu.innerHTML += `<div class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="app.deletePreset('${name}'); document.body.removeChild(this.parentElement)">${name}</div>`;
+                }
+
+                document.body.appendChild(menu);
+                // Remove menu on outside click
+                setTimeout(() => {
+                    document.addEventListener('click', function handler(e) {
+                        if (!menu.contains(e.target)) {
+                            menu.remove();
+                            document.removeEventListener('click', handler);
+                        }
+                    });
+                }, 0);
+            }
+
+            addPredefinedItem(shapeName) {
+                const shape = this.predefinedShapes[shapeName];
+                const name = `${shapeName} ${this.items.length + 1}`;
+                this.items.push({ name, shape, color: this.randomColor() });
+                this.updateItemList();
+                this.saveData();
+                this.drawGrid();
+            }
+
+            addPresetItem(presetName) {
+                const shape = this.presets[presetName];
+                const name = `${presetName} ${this.items.length + 1}`;
+                this.items.push({ name, shape, color: this.randomColor() });
+                this.updateItemList();
+                this.saveData();
+                this.drawGrid();
+            }
+
+            deletePreset(presetName) {
+                delete this.presets[presetName];
+                this.saveData();
+                alert(`Preset '${presetName}' deleted.`);
+                // Update UI after deletion
+                this.drawGrid();
+            }
+
+            updateItemList() {
+                this.itemList.innerHTML = '';
+                this.items.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = `px-2 py-1 ${this.selectedItems.has(index) ? 'bg-blue-100' : ''}`;
+                    li.textContent = item.name;
+                    this.itemList.appendChild(li);
+                });
+            }
+
+            onItemClick(event) {
+                const index = Array.from(this.itemList.children).indexOf(event.target);
+                if (index < 0 || index >= this.items.length) return;
+
+                const ctrl = event.ctrlKey;
+                const shift = event.shiftKey;
+
+                if (!ctrl && !shift) {
+                    this.selectedItems.clear();
+                    this.selectedItems.add(index);
+                } else if (ctrl) {
+                    if (this.selectedItems.has(index)) {
+                        this.selectedItems.delete(index);
+                    } else {
+                        this.selectedItems.add(index);
+                    }
+                } else if (shift && this.selectedItems.size > 0) {
+                    const first = Array.from(this.selectedItems)[0];
+                    this.selectedItems.clear();
+                    const start = Math.min(first, index);
+                    const end = Math.max(first, index);
+                    for (let i = start; i <= end; i++) {
+                        this.selectedItems.add(i);
+                    }
+                }
+
+                this.updateItemList();
+                this.drawGrid();
+            }
+
+            previewItem(item) {
+                const shape = item.shape;
+                const color = item.color;
+                const cellWidth = this.canvas.width / this.gridCols;
+                const cellHeight = this.canvas.height / this.gridRows;
+                const startRow = Math.max(0, Math.floor((this.gridRows - shape.length) / 2));
+                const startCol = Math.max(0, Math.floor((this.gridCols - shape[0].length) / 2));
+
+                for (let r = 0; r < shape.length; r++) {
+                    for (let c = 0; c < shape[0].length; c++) {
+                        if (shape[r][c] === 1) {
+                            this.ctx.fillStyle = color;
+                            this.ctx.fillRect((startCol + c) * cellWidth, (startRow + r) * cellHeight, cellWidth, cellHeight);
+                            this.ctx.strokeStyle = '#d1d5db';
+                            this.ctx.strokeRect((startCol + c) * cellWidth, (startRow + r) * cellHeight, cellWidth, cellHeight);
+                        }
+                    }
+                }
+            }
+
+            deleteSelected() {
+                const indices = Array.from(this.selectedItems).sort((a, b) => b - a);
+                indices.forEach(index => this.items.splice(index, 1));
+                this.selectedItems.clear();
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            randomColor() {
+                return this.colors[Math.floor(Math.random() * this.colors.length)];
+            }
+
+            updateGrid() {
+                const newRows = parseInt(document.getElementById('rows-input').value);
+                const newCols = parseInt(document.getElementById('cols-input').value);
+                if (newRows <= 0 || newCols <= 0 || isNaN(newRows) || isNaN(newCols)) {
+                    alert('Please enter positive integers.');
+                    return;
+                }
+                const newDisabled = Array(newRows).fill().map(() => Array(newCols).fill(0));
+                const minRows = Math.min(this.gridRows, newRows);
+                const minCols = Math.min(this.gridCols, newCols);
+                for (let r = 0; r < minRows; r++) {
+                    for (let c = 0; c < minCols; c++) {
+                        newDisabled[r][c] = this.disabledCells[r][c];
+                    }
+                }
+                this.gridRows = newRows;
+                this.gridCols = newCols;
+                this.disabledCells = newDisabled;
+                this.solution = null;
+                this.drawGrid();
+                this.saveData();
+            }
+
+            onCanvasClick(event) {
+                const cellWidth = this.canvas.width / this.gridCols;
+                const cellHeight = this.canvas.height / this.gridRows;
+                const col = Math.floor(event.offsetX / cellWidth);
+                const row = Math.floor(event.offsetY / cellHeight);
+                if (row >= 0 && row < this.gridRows && col >= 0 && col < this.gridCols) {
+                    this.disabledCells[row][col] = this.disabledCells[row][col] === 0 ? -1 : 0;
+                    this.solution = null;
+                    this.drawGrid();
+                    this.saveData();
+                }
+            }
+
+            solveGrid() {
+                if (this.items.length === 0) {
+                    alert('Please add items to solve.');
+                    return;
+                }
+                this.solution = this.backtrackingSolver(this.disabledCells.map(row => [...row]), [...this.items]);
+                if (!this.solution) {
+                    alert('No solution found.');
+                    this.solution = null;
+                }
+                this.drawGrid();
+                this.saveData();
+            }
+
+            backtrackingSolver(grid, items, itemIndex = 0) {
+                if (itemIndex >= items.length) return grid;
+                const shape = items[itemIndex].shape;
+
+                for (let k = 0; k < 4; k++) {
+                    let rotated = shape;
+                    for (let i = 0; i < k; i++) {
+                        rotated = this.rotateShape(rotated);
+                    }
+                    for (let r = 0; r <= grid.length - rotated.length; r++) {
+                        for (let c = 0; c <= grid[0].length - rotated[0].length; c++) {
+                            if (this.canPlaceItem(grid, rotated, r, c)) {
+                                const newGrid = grid.map(row => [...row]);
+                                for (let i = 0; i < rotated.length; i++) {
+                                    for (let j = 0; j < rotated[0].length; j++) {
+                                        if (rotated[i][j] === 1) {
+                                            newGrid[r + i][c + j] = itemIndex + 1;
+                                        }
+                                    }
+                                }
+                                const result = this.backtrackingSolver(newGrid, items, itemIndex + 1);
+                                if (result) return result;
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+
+            rotateShape(shape) {
+                const rows = shape.length;
+                const cols = shape[0].length;
+                const rotated = Array(cols).fill().map(() => Array(rows).fill(0));
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        rotated[c][rows - 1 - r] = shape[r][c];
+                    }
+                }
+                return rotated;
+            }
+
+            canPlaceItem(grid, shape, startRow, startCol) {
+                if (startRow + shape.length > grid.length || startCol + shape[0].length > grid[0].length) return false;
+                for (let r = 0; r < shape.length; r++) {
+                    for (let c = 0; c < shape[0].length; c++) {
+                        if (shape[r][c] === 1 && (startRow + r >= grid.length || startCol + c >= grid[0].length || grid[startRow + r][startCol + c] !== 0)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            displaySolution() {
+                const cellWidth = this.canvas.width / this.gridCols;
+                const cellHeight = this.canvas.height / this.gridRows;
+                for (let r = 0; r < this.solution.length; r++) {
+                    for (let c = 0; c < this.solution[0].length; c++) {
+                        if (this.solution[r][c] > 0) {
+                            const color = this.items[this.solution[r][c] - 1].color;
+                            this.ctx.fillStyle = color;
+                            this.ctx.fillRect(c * cellWidth, r * cellHeight, cellWidth, cellHeight);
+                            this.ctx.strokeStyle = '#d1d5db';
+                            this.ctx.strokeRect(c * cellWidth, r * cellHeight, cellWidth, cellHeight);
+                        }
+                    }
+                }
+            }
+
+            showCustomModal() {
+                this.customModal.classList.remove('hidden');
+                this.updateCustomGrid();
+            }
+
+            closeCustomModal() {
+                this.customModal.classList.add('hidden');
+            }
+
+            updateCustomGrid() {
+                const rows = parseInt(document.getElementById('custom-rows').value);
+                const cols = parseInt(document.getElementById('custom-cols').value);
+                if (rows <= 0 || cols <= 0 || rows > 10 || cols > 10 || isNaN(rows) || isNaN(cols)) {
+                    alert('Enter integers between 1 and 10.');
+                    return;
+                }
+                this.customGrid.style.gridTemplateRows = `repeat(${rows}, 30px)`;
+                this.customGrid.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+                this.customGrid.innerHTML = '';
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell border bg-white';
+                        cell.dataset.row = r;
+                        cell.dataset.col = c;
+                        cell.addEventListener('click', () => {
+                            cell.classList.toggle('bg-blue-500');
+                            cell.classList.toggle('bg-white');
+                        });
+                        this.customGrid.appendChild(cell);
+                    }
+                }
+            }
+
+            createCustomShape() {
+                const rows = parseInt(document.getElementById('custom-rows').value);
+                const cols = parseInt(document.getElementById('custom-cols').value);
+                const shape = Array(rows).fill().map(() => Array(cols).fill(0));
+                let hasContent = false;
+                this.customGrid.querySelectorAll('.grid-cell').forEach(cell => {
+                    const r = parseInt(cell.dataset.row);
+                    const c = parseInt(cell.dataset.col);
+                    if (cell.classList.contains('bg-blue-500')) {
+                        shape[r][c] = 1;
+                        hasContent = true;
+                    }
+                });
+                if (!hasContent) {
+                    alert('Create a non-empty shape.');
+                    return;
+                }
+                const rowsWithContent = shape.map((row, i) => row.includes(1) ? i : -1).filter(i => i !== -1);
+                const colsWithContent = shape[0].map((_, c) => shape.some(row => row[c] === 1) ? c : -1).filter(c => c !== -1);
+                const minRow = Math.min(...rowsWithContent);
+                const maxRow = Math.max(...rowsWithContent);
+                const minCol = Math.min(...colsWithContent);
+                const maxCol = Math.max(...colsWithContent);
+                const trimmedShape = shape.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
+                const name = document.getElementById('preset-name').value.trim() || `Custom ${this.items.length + 1}`;
+                const savePreset = document.getElementById('save-preset').checked;
+                if (savePreset && !name) {
+                    alert('Please enter a name to save as preset.');
+                    return;
+                }
+                this.items.push({ name, shape: trimmedShape, color: this.randomColor() });
+                if (savePreset) {
+                    this.presets[name] = trimmedShape;
+                }
+                this.updateItemList();
+                this.saveData();
+                this.closeCustomModal();
+                this.drawGrid();
+            }
+
+            saveData() {
+                const data = {
+                    gridRows: this.gridRows,
+                    gridCols: this.gridCols,
+                    disabledCells: this.disabledCells,
+                    items: this.items.map(item => ({
+                        name: item.name,
+                        shape: item.shape,
+                        color: item.color
+                    })),
+                    presets: this.presets,
+                    solution: this.solution
+                };
+                Cookies.set('gridData', JSON.stringify(data), { expires: 365 });
+            }
+
+            loadData() {
+                const data = Cookies.get('gridData');
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    this.gridRows = parsed.gridRows || 5;
+                    this.gridCols = parsed.gridCols || 5;
+                    this.disabledCells = parsed.disabledCells || Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
+                    this.items = parsed.items || [];
+                    this.presets = parsed.presets || {};
+                    this.solution = parsed.solution || null;
+                    document.getElementById('rows-input').value = this.gridRows;
+                    document.getElementById('cols-input').value = this.gridCols;
+                    this.updateItemList();
+                }
+            }
+
+            resetAll() {
+                if (!confirm('Are you sure you want to reset all items and disabled grid cells? Presets will be kept.')) return;
+                this.items = [];
+                this.selectedItems.clear();
+                this.disabledCells = Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
+                this.solution = null;
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            clearAllData() {
+                if (!confirm('Are you sure you want to clear ALL saved data? This will remove all items, grid, disables, and presets.')) return;
+                Cookies.remove('gridData');
+                this.gridRows = 5;
+                this.gridCols = 5;
+                this.items = [];
+                this.presets = {};
+                this.disabledCells = Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
+                this.solution = null;
+                this.selectedItems.clear();
+                document.getElementById('rows-input').value = this.gridRows;
+                document.getElementById('cols-input').value = this.gridCols;
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            async importPresets(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    const text = await file.text();
+                    const json = JSON.parse(text);
+                    if (typeof json === 'object') {
+                        Object.assign(this.presets, json);
+                        this.saveData();
+                        alert('Presets imported!');
+                    } else {
+                        alert('Invalid preset file.');
+                    }
+                } catch (err) {
+                    alert('Failed to import presets.');
+                }
+            }
+        }
+
+        window.app = new GridInventorySolver();
+    </script>
+</body>
+</html>
