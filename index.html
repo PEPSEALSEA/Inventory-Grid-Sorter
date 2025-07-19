@@ -170,7 +170,14 @@
                 this.disabledCells = Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
                 this.solution = null;
                 this.selectedItems = new Set();
-                this.colors = ["#FF5733", "#33FF57", "#3357FF", "#F3FF33", "#FF33F6", "#33FFF6", "#F633FF", "#57FF33", "#FF3357", "#33F3FF", "#FF8C00", "#8A2BE2", "#7FFF00", "#DC143C", "00FFFF", "#FF1493", "#FFD700", "#4B0082", "#20B2AA", "#32CD32", "#FF4500", "#2E8B57", "#4682B4", "#8B0000", "#00CED1", "#9400D3", "#008080", "#FF6347", "#ADFF2F", "#8B4513"];
+                this.colors = [
+                    "#FF5733", "#33FF57", "#3357FF", "#F3FF33", "#FF33F6", "#33FFF6", "#F633FF", "#57FF33", "#FF3357", "#33F3FF",
+                    "#FF8C00", "#8A2BE2", "#7FFF00", "#DC143C", "#00FFFF", "#FF1493", "#FFD700", "#4B0082", "#20B2AA", "#32CD32",
+                    "#FF4500", "#2E8B57", "#4682B4", "#8B0000", "#00CED1", "#9400D3", "#008080", "#FF6347", "#ADFF2F", "#8B4513",
+                    "#E67E22", "#1ABC9C", "#9B59B6", "#E74C3C", "#2ECC71", "#3498DB", "#F1C40F", "#E84393", "#00B894", "#6C5CE7",
+                    "#00CEC9", "#FD79A8", "#636E72", "#D35400", "#00A8FF", "#9C88FF", "#FBC531", "#4CD137", "#487EB0", "#B33771",
+                    "#3B3B98", "#F8EFBA", "#574B90", "#F97F51", "#1B9CFC", "#55E6C1", "#B33771", "#3B3B98", "#FD7272", "#25CCF7"
+                ];
                 
                 this.canvas = document.getElementById('grid-canvas');
                 this.ctx = this.canvas.getContext('2d');
@@ -554,10 +561,68 @@
                     alert('Please add items to solve.');
                     return;
                 }
-                this.solution = this.backtrackingSolver(this.disabledCells.map(row => [...row]), [...this.items]);
-                if (!this.solution) {
+                // Count available grid cells (not disabled)
+                let available = 0;
+                for (let r = 0; r < this.gridRows; r++) {
+                    for (let c = 0; c < this.gridCols; c++) {
+                        if (this.disabledCells[r][c] === 0) available++;
+                    }
+                }
+                // Count total item cells needed
+                let needed = 0;
+                for (const item of this.items) {
+                    for (const row of item.shape) {
+                        for (const cell of row) {
+                            if (cell === 1) needed++;
+                        }
+                    }
+                }
+                if (needed > available) {
+                    alert('Not enough space in the grid for all items!');
+                    return;
+                }
+                // Timeout logic
+                const startTime = performance.now();
+                const maxTime = 2000; // ms
+                const timedSolver = (grid, items, itemIndex = 0) => {
+                    if (performance.now() - startTime > maxTime) return 'TIMEOUT';
+                    if (itemIndex >= items.length) return grid;
+                    const shape = items[itemIndex].shape;
+                    const maxRot = this.allowRotation ? 4 : 1;
+                    for (let k = 0; k < maxRot; k++) {
+                        let rotated = shape;
+                        for (let i = 0; i < k; i++) {
+                            rotated = this.rotateShape(rotated);
+                        }
+                        for (let r = 0; r <= grid.length - rotated.length; r++) {
+                            for (let c = 0; c <= grid[0].length - rotated[0].length; c++) {
+                                if (this.canPlaceItem(grid, rotated, r, c)) {
+                                    const newGrid = grid.map(row => [...row]);
+                                    for (let i = 0; i < rotated.length; i++) {
+                                        for (let j = 0; j < rotated[0].length; j++) {
+                                            if (rotated[i][j] === 1) {
+                                                newGrid[r + i][c + j] = itemIndex + 1;
+                                            }
+                                        }
+                                    }
+                                    const result = timedSolver(newGrid, items, itemIndex + 1);
+                                    if (result && result !== 'TIMEOUT') return result;
+                                    if (result === 'TIMEOUT') return 'TIMEOUT';
+                                }
+                            }
+                        }
+                    }
+                    return null;
+                };
+                let result = timedSolver(this.disabledCells.map(row => [...row]), [...this.items]);
+                if (result === 'TIMEOUT') {
+                    alert('Solving took too long or no solution found.');
+                    this.solution = null;
+                } else if (!result) {
                     alert('No solution found.');
                     this.solution = null;
+                } else {
+                    this.solution = result;
                 }
                 this.drawGrid();
                 this.saveData();
