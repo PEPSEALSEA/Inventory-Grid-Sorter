@@ -371,8 +371,10 @@
             updateItemList() {
                 this.itemList.innerHTML = '';
                 this.items.forEach((item, index) => {
+                    // List item container
                     const li = document.createElement('li');
-                    li.className = `px-2 py-1 flex items-center justify-between`;
+                    li.className = 'px-2 py-1 flex items-center justify-between';
+                    // Name
                     const nameSpan = document.createElement('span');
                     nameSpan.textContent = item.name;
                     nameSpan.dataset.index = index;
@@ -384,18 +386,38 @@
                         this.previewingIndex = null;
                         this.drawGrid();
                     });
+                    // Icon group (right)
+                    const iconGroup = document.createElement('span');
+                    iconGroup.className = 'flex gap-2 items-center ml-2';
+                    // Duplicate icon
+                    const duplicate = document.createElement('span');
+                    duplicate.textContent = '📄';
+                    duplicate.className = 'cursor-pointer text-lg align-middle hover:text-blue-600 transition-colors';
+                    duplicate.title = 'Duplicate';
+                    duplicate.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.duplicateItem(index);
+                    });
                     // Trash can icon
                     const trash = document.createElement('span');
-                    trash.textContent = '🗑️'; // Unicode U+1F5D1
-                    trash.className = 'cursor-pointer text-lg ml-2 align-middle hover:text-red-600 transition-colors';
+                    trash.textContent = '🗑️';
+                    trash.className = 'cursor-pointer text-lg align-middle hover:text-red-600 transition-colors';
                     trash.title = 'Delete';
                     trash.addEventListener('click', (e) => {
                         e.stopPropagation();
                         this.deleteItem(index);
                     });
+                    iconGroup.appendChild(duplicate);
+                    iconGroup.appendChild(trash);
                     li.appendChild(nameSpan);
-                    li.appendChild(trash);
+                    li.appendChild(iconGroup);
                     this.itemList.appendChild(li);
+                    // Divider
+                    if (index < this.items.length - 1) {
+                        const hr = document.createElement('hr');
+                        hr.className = 'my-1 border-gray-300';
+                        this.itemList.appendChild(hr);
+                    }
                 });
             }
 
@@ -446,6 +468,42 @@
             deleteItem(index) {
                 this.items.splice(index, 1);
                 this.previewingIndex = null;
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            // Helper to get next available numbered name for a base name
+            getNextItemName(baseName) {
+                // Find all items with the same base name and a number
+                let maxNum = 0;
+                const regex = new RegExp(`^${baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} (\\d+)$`);
+                for (const item of this.items) {
+                    const match = item.name.match(regex);
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        if (num > maxNum) maxNum = num;
+                    }
+                }
+                return `${baseName} ${maxNum + 1}`;
+            }
+            duplicateItem(index) {
+                const item = this.items[index];
+                // Try to extract base name and number
+                let baseName = item.name;
+                let match = item.name.match(/^(.*) (\d+)$/);
+                if (match) {
+                    baseName = match[1];
+                }
+                const newName = this.getNextItemName(baseName);
+                // Deep copy shape array
+                const newShape = item.shape.map(row => [...row]);
+                const newItem = {
+                    name: newName,
+                    shape: newShape,
+                    color: this.randomColor()
+                };
+                this.items.splice(index + 1, 0, newItem);
                 this.updateItemList();
                 this.drawGrid();
                 this.saveData();
