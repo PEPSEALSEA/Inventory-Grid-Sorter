@@ -178,6 +178,7 @@
                     "#00CEC9", "#FD79A8", "#636E72", "#D35400", "#00A8FF", "#9C88FF", "#FBC531", "#4CD137", "#487EB0", "#B33771",
                     "#3B3B98", "#F8EFBA", "#574B90", "#F97F51", "#1B9CFC", "#55E6C1", "#B33771", "#3B3B98", "#FD7272", "#25CCF7"
                 ];
+                this.usedColorIndex = 0;
                 
                 this.canvas = document.getElementById('grid-canvas');
                 this.ctx = this.canvas.getContext('2d');
@@ -517,7 +518,13 @@
             }
 
             randomColor() {
-                return this.colors[Math.floor(Math.random() * this.colors.length)];
+                // Use each color in this.colors once before repeating
+                if (this.usedColorIndex < this.colors.length) {
+                    return this.colors[this.usedColorIndex++];
+                } else {
+                    // After all colors are used, pick randomly
+                    return this.colors[Math.floor(Math.random() * this.colors.length)];
+                }
             }
 
             updateGrid() {
@@ -812,6 +819,7 @@
                 this.selectedItems.clear();
                 this.disabledCells = Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
                 this.solution = null;
+                this.usedColorIndex = 0;
                 this.updateItemList();
                 this.drawGrid();
                 this.saveData();
@@ -827,6 +835,7 @@
                 this.disabledCells = Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
                 this.solution = null;
                 this.selectedItems.clear();
+                this.usedColorIndex = 0;
                 document.getElementById('rows-input').value = this.gridRows;
                 document.getElementById('cols-input').value = this.gridCols;
                 this.updateItemList();
