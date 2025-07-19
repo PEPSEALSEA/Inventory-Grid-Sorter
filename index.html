@@ -82,14 +82,15 @@
     <div id="sparkle-container"></div>
     <div class="flex w-full max-w-5xl fantasy-panel shadow-lg rounded-lg overflow-hidden">
         <!-- Sidebar -->
-        <div class="w-80 bg-white/80 p-4 border-r border-gray-200 fantasy-panel">
-            <div class="mb-4">
+        <div class="w-80 bg-white/80 p-4 border-r border-gray-200 fantasy-panel flex flex-col h-full">
+            <!-- Grid Settings -->
+            <div class="mb-4 pb-4 border-b border-gray-300">
                 <h2 class="text-lg font-bold mb-2 fantasy-heading">Grid Settings</h2>
-                <div class="flex items-center mb2">
+                <div class="flex items-center mb-2">
                     <label class="mr-2">Rows:</label>
                     <input id="rows-input" type="number" min="1" value="5" class="w-16 border rounded px-2 py-1">
                 </div>
-                <div class="flex items-center mb-4">
+                <div class="flex items-center mb-2">
                     <label class="mr-2">Columns:</label>
                     <input id="cols-input" type="number" min="1" value="5" class="w-16 border rounded px-2 py-1">
                 </div>
@@ -99,18 +100,30 @@
                 </div>
                 <button id="update-grid" class="w-full bg-blue-500 text-white rounded py-2 hover:bg-blue-600 glow-btn">Update Grid</button>
             </div>
-            <div class="flex-1">
-                <h2 class="text-lg font-bold mb-2 fantasy-heading">Items</h2>
-                <ul id="item-list" class="border rounded max-h-64 overflow-y-auto mb-4"></ul>
+            <!-- Items -->
+            <div class="flex-1 flex flex-col pb-4 border-b border-gray-300">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-lg font-bold fantasy-heading">Items</h2>
                 <div class="flex gap-2">
-                    <button id="add-shape" class="flex-1 bg-blue-500 text-white rounded py-2 hover:bg-blue-600 glow-btn">Add Shape</button>
-                    <button id="delete-preset" class="flex-1 bg-red-500 text-white rounded py-2 hover:bg-red-600 glow-btn">Delete Preset</button>
+                        <button id="add-shape" class="bg-blue-500 text-white rounded px-3 py-1 hover:bg-blue-600 glow-btn text-sm">Add Shape</button>
+                        <button id="delete-preset" class="bg-red-500 text-white rounded px-3 py-1 hover:bg-red-600 glow-btn text-sm">Delete Preset</button>
+                    </div>
                 </div>
-                <button id="solve-grid" class="w-full bg-blue-500 text-white rounded py-2 mt-4 hover:bg-blue-600 glow-btn">Solve Grid</button>
+                <ul id="item-list" class="border rounded max-h-64 overflow-y-auto"></ul>
             </div>
-            <div class="mt-4 flex flex-col gap-2">
-                <button id="reset-all" class="w-full bg-yellow-500 text-white rounded py-2 hover:bg-yellow-600 glow-btn">Reset All</button>
-                <button id="clear-cookie" class="w-full bg-red-700 text-white rounded py-2 hover:bg-red-800 glow-btn">Clear Cookie</button>
+            <!-- Solve Actions -->
+            <div class="pt-4 pb-2 border-b border-gray-300 flex flex-col gap-2">
+                <div class="flex gap-2">
+                    <button id="solve-grid" class="flex-1 bg-blue-500 text-white rounded py-2 hover:bg-blue-600 glow-btn text-base font-semibold">Solve Grid</button>
+                    <button id="clear-solve" class="flex-1 bg-gray-400 text-white rounded py-2 hover:bg-gray-500 glow-btn text-base">Clear Solve</button>
+                </div>
+            </div>
+            <!-- Utility Actions -->
+            <div class="pt-4 flex flex-col gap-2">
+                <div class="flex gap-2">
+                    <button id="reset-all" class="flex-1 bg-yellow-500 text-white rounded py-2 hover:bg-yellow-600 glow-btn">Reset All</button>
+                    <button id="clear-cookie" class="flex-1 bg-red-700 text-white rounded py-2 hover:bg-red-800 glow-btn">Clear Cookie</button>
+                </div>
                 <div class="mt-2">
                     <label class="block text-xs mb-1">Import Presets (JSON):</label>
                     <input id="import-presets" type="file" accept="application/json" class="w-full text-xs" />
@@ -210,6 +223,7 @@
                 document.getElementById('add-shape').addEventListener('click', (e) => this.showAddShapeMenu(e));
                 document.getElementById('delete-preset').addEventListener('click', (e) => this.showDeletePresetMenu(e));
                 document.getElementById('solve-grid').addEventListener('click', () => this.solveGrid());
+                document.getElementById('clear-solve').addEventListener('click', () => this.clearSolve());
                 document.getElementById('reset-all').addEventListener('click', () => this.resetAll());
                 document.getElementById('clear-cookie').addEventListener('click', () => this.clearAllData());
                 document.getElementById('update-custom-grid').addEventListener('click', () => this.updateCustomGrid());
@@ -353,7 +367,9 @@
             addPredefinedItem(shapeName) {
                 const shape = this.predefinedShapes[shapeName];
                 const name = `${shapeName} ${this.items.length + 1}`;
-                this.items.push({ name, shape, color: this.randomColor() });
+                const color = this.randomColor(this.items.length);
+                this.items.push({ name, shape, color });
+                this.solution = null;
                 this.updateItemList();
                 this.saveData();
                 this.drawGrid();
@@ -362,7 +378,9 @@
             addPresetItem(presetName) {
                 const shape = this.presets[presetName];
                 const name = `${presetName} ${this.items.length + 1}`;
-                this.items.push({ name, shape, color: this.randomColor() });
+                const color = this.randomColor(this.items.length);
+                this.items.push({ name, shape, color });
+                this.solution = null;
                 this.updateItemList();
                 this.saveData();
                 this.drawGrid();
@@ -476,6 +494,7 @@
             deleteItem(index) {
                 this.items.splice(index, 1);
                 this.previewingIndex = null;
+                this.solution = null;
                 this.updateItemList();
                 this.drawGrid();
                 this.saveData();
@@ -506,12 +525,15 @@
                 const newName = this.getNextItemName(baseName);
                 // Deep copy shape array
                 const newShape = item.shape.map(row => [...row]);
+                // Pick color not same as neighbors
+                const color = this.randomColor(index + 1);
                 const newItem = {
                     name: newName,
                     shape: newShape,
-                    color: this.randomColor()
+                    color: color
                 };
                 this.items.splice(index + 1, 0, newItem);
+                this.solution = null;
                 this.updateItemList();
                 this.drawGrid();
                 this.saveData();
@@ -523,7 +545,7 @@
                     return this.colors[this.usedColorIndex++];
                 } else {
                     // After all colors are used, pick randomly
-                    return this.colors[Math.floor(Math.random() * this.colors.length)];
+                return this.colors[Math.floor(Math.random() * this.colors.length)];
                 }
             }
 
@@ -874,6 +896,12 @@
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                 }, 100);
+            }
+
+            clearSolve() {
+                this.solution = null;
+                this.drawGrid();
+                this.saveData();
             }
         }
 
