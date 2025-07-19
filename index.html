@@ -33,11 +33,6 @@
             box-shadow: 0 4px 32px 0 #a0f4, 0 1.5px 8px #fff8;
             border-radius: 1.5rem;
             border: 2px solid #a0f6;
-            animation: floatPanel 4s ease-in-out infinite alternate;
-        }
-        @keyframes floatPanel {
-            0% { transform: translateY(0px); }
-            100% { transform: translateY(-10px); }
         }
         .glow-btn {
             box-shadow: 0 0 12px 2px #a0f8, 0 0 32px 0 #fff6;
@@ -105,7 +100,6 @@
                 <ul id="item-list" class="border rounded max-h-64 overflow-y-auto mb-4"></ul>
                 <div class="flex gap-2">
                     <button id="add-shape" class="flex-1 bg-blue-500 text-white rounded py-2 hover:bg-blue-600 glow-btn">Add Shape</button>
-                    <button id="delete-selected" class="flex-1 bg-red-500 text-white rounded py-2 hover:bg-red-600 glow-btn">Delete</button>
                     <button id="delete-preset" class="flex-1 bg-red-500 text-white rounded py-2 hover:bg-red-600 glow-btn">Delete Preset</button>
                 </div>
                 <button id="solve-grid" class="w-full bg-blue-500 text-white rounded py-2 mt-4 hover:bg-blue-600 glow-btn">Solve Grid</button>
@@ -116,6 +110,7 @@
                 <div class="mt-2">
                     <label class="block text-xs mb-1">Import Presets (JSON):</label>
                     <input id="import-presets" type="file" accept="application/json" class="w-full text-xs" />
+                    <button id="export-presets" class="w-full mt-2 bg-green-500 text-white rounded py-2 hover:bg-green-600 glow-btn text-xs">Save Presets (JSON)</button>
                 </div>
             </div>
         </div>
@@ -200,7 +195,6 @@
             setupEventListeners() {
                 document.getElementById('update-grid').addEventListener('click', () => this.updateGrid());
                 document.getElementById('add-shape').addEventListener('click', (e) => this.showAddShapeMenu(e));
-                document.getElementById('delete-selected').addEventListener('click', () => this.deleteSelected());
                 document.getElementById('delete-preset').addEventListener('click', (e) => this.showDeletePresetMenu(e));
                 document.getElementById('solve-grid').addEventListener('click', () => this.solveGrid());
                 document.getElementById('reset-all').addEventListener('click', () => this.resetAll());
@@ -211,6 +205,7 @@
                 this.canvas.addEventListener('click', (e) => this.onCanvasClick(e));
                 this.itemList.addEventListener('click', (e) => this.onItemClick(e));
                 this.importPresetsInput.addEventListener('change', (e) => this.importPresets(e));
+                document.getElementById('export-presets').addEventListener('click', () => this.exportPresets());
                 window.addEventListener('resize', () => this.drawGrid());
             }
 
@@ -235,15 +230,8 @@
 
                 if (this.solution) {
                     this.displaySolution();
-                } else if (this.selectedItems.size === 1) {
-                    const index = Array.from(this.selectedItems)[0];
-                    this.previewItem(this.items[index]);
-                } else if (this.selectedItems.size > 1) {
-                    const text = `Selected ${this.selectedItems.size} items:\n${Array.from(this.selectedItems).map(i => this.items[i].name).join('\n')}`;
-                    this.ctx.fillStyle = '#333333';
-                    this.ctx.font = '12px Segoe UI';
-                    this.ctx.textAlign = 'center';
-                    this.ctx.fillText(text, this.canvas.width / 2, this.canvas.height / 2);
+                } else if (typeof this.previewingIndex === 'number' && this.items[this.previewingIndex]) {
+                    this.previewItem(this.items[this.previewingIndex]);
                 }
             }
 
@@ -330,40 +318,35 @@
                 this.itemList.innerHTML = '';
                 this.items.forEach((item, index) => {
                     const li = document.createElement('li');
-                    li.className = `px-2 py-1 ${this.selectedItems.has(index) ? 'bg-blue-100' : ''}`;
-                    li.textContent = item.name;
+                    li.className = `px-2 py-1 flex items-center justify-between`;
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = item.name;
+                    nameSpan.dataset.index = index;
+                    nameSpan.addEventListener('mouseenter', () => {
+                        this.previewingIndex = index;
+                        this.drawGrid();
+                    });
+                    nameSpan.addEventListener('mouseleave', () => {
+                        this.previewingIndex = null;
+                        this.drawGrid();
+                    });
+                    // Trash can icon
+                    const trash = document.createElement('span');
+                    trash.textContent = '🗑️'; // Unicode U+1F5D1
+                    trash.className = 'cursor-pointer text-lg ml-2 align-middle hover:text-red-600 transition-colors';
+                    trash.title = 'Delete';
+                    trash.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteItem(index);
+                    });
+                    li.appendChild(nameSpan);
+                    li.appendChild(trash);
                     this.itemList.appendChild(li);
                 });
             }
 
             onItemClick(event) {
-                const index = Array.from(this.itemList.children).indexOf(event.target);
-                if (index < 0 || index >= this.items.length) return;
-
-                const ctrl = event.ctrlKey;
-                const shift = event.shiftKey;
-
-                if (!ctrl && !shift) {
-                    this.selectedItems.clear();
-                    this.selectedItems.add(index);
-                } else if (ctrl) {
-                    if (this.selectedItems.has(index)) {
-                        this.selectedItems.delete(index);
-                    } else {
-                        this.selectedItems.add(index);
-                    }
-                } else if (shift && this.selectedItems.size > 0) {
-                    const first = Array.from(this.selectedItems)[0];
-                    this.selectedItems.clear();
-                    const start = Math.min(first, index);
-                    const end = Math.max(first, index);
-                    for (let i = start; i <= end; i++) {
-                        this.selectedItems.add(i);
-                    }
-                }
-
-                this.updateItemList();
-                this.drawGrid();
+                // No-op for preview system on hover
             }
 
             previewItem(item) {
@@ -401,6 +384,14 @@
                 const indices = Array.from(this.selectedItems).sort((a, b) => b - a);
                 indices.forEach(index => this.items.splice(index, 1));
                 this.selectedItems.clear();
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            deleteItem(index) {
+                this.items.splice(index, 1);
+                this.previewingIndex = null;
                 this.updateItemList();
                 this.drawGrid();
                 this.saveData();
@@ -679,6 +670,21 @@
                 } catch (err) {
                     alert('Failed to import presets.');
                 }
+            }
+
+            exportPresets() {
+                const dataStr = JSON.stringify(this.presets, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'presets.json';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
             }
         }
 
