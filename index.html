@@ -19,6 +19,10 @@
             position: relative;
             overflow-x: hidden;
             overflow-y: overlay;
+            transition: background 0.3s ease;
+        }
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a0a1a 0%, #2d0a2d 50%, #0a0a0a 100%);
         }
         @supports not (overflow-y: overlay) {
             body { overflow-y: scroll; }
@@ -27,33 +31,58 @@
             font-family: 'Cinzel Decorative', 'MedievalSharp', cursive, fantasy;
             letter-spacing: 2px;
             text-shadow: 0 2px 8px #fff7, 0 0px 32px #a0f, 0 0 2px #fff;
+            transition: text-shadow 0.3s ease;
+        }
+        .dark-mode .fantasy-heading {
+            text-shadow: 0 2px 8px rgba(255, 105, 180, 0.7), 0 0px 32px #ff1493, 0 0 2px #fff;
         }
         .fantasy-panel {
-            background: linear-gradient(120deg, #fff8, #e0c3fc 80%, #8ec5fc 100%);
-            box-shadow: 0 4px 32px 0 #a0f4, 0 1.5px 8px #fff8;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.8), #e0c3fc 80%, #8ec5fc 100%);
+            box-shadow: 0 4px 32px 0 rgba(160, 0, 255, 0.4), 0 1.5px 8px rgba(255, 255, 255, 0.8);
             border-radius: 1.5rem;
-            border: 2px solid #a0f6;
+            border: 2px solid rgba(160, 0, 255, 0.6);
+            transition: all 0.3s ease;
+        }
+        .dark-mode .fantasy-panel {
+            background: linear-gradient(120deg, rgba(26, 10, 26, 0.8), #2d0a2d 80%, #0a0a0a 100%);
+            box-shadow: 0 4px 32px 0 rgba(255, 20, 147, 0.4), 0 1.5px 8px rgba(255, 105, 180, 0.8);
+            border: 2px solid #ff1493;
         }
         .glow-btn {
-            box-shadow: 0 0 12px 2px #a0f8, 0 0 32px 0 #fff6;
+            box-shadow: 0 0 12px 2px rgba(160, 0, 255, 0.8), 0 0 32px 0 rgba(255, 255, 255, 0.6);
             transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .dark-mode .glow-btn {
+            box-shadow: 0 0 12px 2px rgba(255, 20, 147, 0.8), 0 0 32px 0 rgba(255, 105, 180, 0.6);
         }
         .glow-btn:hover {
             transform: scale(1.07);
             box-shadow: 0 0 32px 8px #fff, 0 0 64px 0 #a0f;
+        }
+        .dark-mode .glow-btn:hover {
+            box-shadow: 0 0 32px 8px #ff69b4, 0 0 64px 0 #ff1493;
         }
         .grid-cell {
             width: 100%; height: 100%;
             transition: background 0.3s, box-shadow 0.3s;
         }
         .grid-cell.bg-blue-500 {
-            box-shadow: 0 0 16px 4px #6a11cb88, 0 0 32px 0 #fff8;
+            box-shadow: 0 0 16px 4px rgba(106, 17, 203, 0.88), 0 0 32px 0 rgba(255, 255, 255, 0.8);
             animation: pulseCell 0.7s;
+        }
+        .dark-mode .grid-cell.bg-blue-500 {
+            box-shadow: 0 0 16px 4px rgba(255, 20, 147, 0.88), 0 0 32px 0 rgba(255, 105, 180, 0.8);
+            animation: pulseCellDark 0.7s;
         }
         @keyframes pulseCell {
             0% { box-shadow: 0 0 0 0 #6a11cb44; }
             70% { box-shadow: 0 0 16px 8px #6a11cbcc; }
             100% { box-shadow: 0 0 16px 4px #6a11cb88; }
+        }
+        @keyframes pulseCellDark {
+            0% { box-shadow: 0 0 0 0 #ff149344; }
+            70% { box-shadow: 0 0 16px 8px #ff1493cc; }
+            100% { box-shadow: 0 0 16px 4px #ff149388; }
         }
         .sparkle {
             position: absolute;
@@ -63,6 +92,10 @@
             background: radial-gradient(circle, #fff 60%, #a0f 100%);
             opacity: 0.7;
             animation: sparkleMove 6s linear infinite;
+            transition: background 0.3s ease;
+        }
+        .dark-mode .sparkle {
+            background: radial-gradient(circle, #ff69b4 60%, #ff1493 100%);
         }
         @keyframes sparkleMove {
             0% { opacity: 0; transform: scale(0.5) translateY(0); }
@@ -76,9 +109,141 @@
             pointer-events: none;
             z-index: 0;
         }
+        
+        /* Dark mode specific styles */
+        .dark-mode {
+            color: #e0e0e0;
+        }
+        .dark-mode input, .dark-mode select, .dark-mode textarea {
+            background-color: #2d0a2d;
+            border-color: #ff1493;
+            color: #e0e0e0;
+        }
+        .dark-mode input:focus, .dark-mode select:focus, .dark-mode textarea:focus {
+            border-color: #ff69b4;
+            box-shadow: 0 0 8px #ff1493;
+        }
+        .dark-mode .bg-white {
+            background-color: #1a0a1a;
+        }
+        .dark-mode .bg-gray-50 {
+            background-color: #2d0a2d;
+        }
+        .dark-mode .bg-gray-100 {
+            background-color: #1a0a1a;
+        }
+        .dark-mode .text-gray-700 {
+            color: #e0e0e0;
+        }
+        .dark-mode .border-gray-200 {
+            border-color: #ff1493;
+        }
+        .dark-mode .border-gray-300 {
+            border-color: #ff1493;
+        }
+        .dark-mode .bg-blue-500 {
+            background-color: #ff1493;
+        }
+        .dark-mode .hover\:bg-blue-600:hover {
+            background-color: #ff69b4;
+        }
+        .dark-mode .bg-red-500 {
+            background-color: #8b0000;
+        }
+        .dark-mode .hover\:bg-red-600:hover {
+            background-color: #a00000;
+        }
+        .dark-mode .bg-yellow-500 {
+            background-color: #b8860b;
+        }
+        .dark-mode .hover\:bg-yellow-600:hover {
+            background-color: #daa520;
+        }
+        .dark-mode .bg-red-700 {
+            background-color: #8b0000;
+        }
+        .dark-mode .hover\:bg-red-800:hover {
+            background-color: #a00000;
+        }
+        .dark-mode .bg-green-500 {
+            background-color: #006400;
+        }
+        .dark-mode .hover\:bg-green-600:hover {
+            background-color: #008000;
+        }
+        .dark-mode .bg-gray-400 {
+            background-color: #4a4a4a;
+        }
+        .dark-mode .hover\:bg-gray-500:hover {
+            background-color: #5a5a5a;
+        }
+        .dark-mode .bg-gray-500 {
+            background-color: #4a4a4a;
+        }
+        .dark-mode .hover\:bg-gray-600:hover {
+            background-color: #5a5a5a;
+        }
+        
+        /* Dark mode toggle button */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(45deg, #ff1493, #ff69b4);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px #ff1493;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px #ff69b4;
+        }
+        .dark-mode-toggle:not(.dark-mode) {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            box-shadow: 0 0 20px #6a11cb;
+        }
+        .dark-mode-toggle:not(.dark-mode):hover {
+            box-shadow: 0 0 30px #2575fc;
+        }
+        
+        /* Canvas dark mode */
+        .dark-mode #grid-canvas {
+            border-color: #ff1493;
+            background-color: #1a0a1a !important;
+        }
+        
+        /* Modal dark mode */
+        .dark-mode #custom-shape-modal .bg-white {
+            background-color: #2d0a2d;
+        }
+        .dark-mode #custom-shape-modal {
+            color: #e0e0e0;
+        }
+        
+        /* Menu dark mode */
+        .dark-mode .absolute.bg-white {
+            background-color: #2d0a2d;
+            border-color: #ff1493;
+            color: #e0e0e0;
+        }
+        .dark-mode .absolute.bg-white .hover\:bg-gray-100:hover {
+            background-color: #1a0a1a;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <!-- Dark Mode Toggle -->
+    <button id="dark-mode-toggle" class="dark-mode-toggle" title="Toggle Dark Mode">🌙</button>
+    
     <div id="sparkle-container"></div>
     <div class="flex w-full max-w-5xl fantasy-panel shadow-lg rounded-lg overflow-hidden">
         <!-- Sidebar -->
@@ -192,6 +357,7 @@
                     "#3B3B98", "#F8EFBA", "#574B90", "#F97F51", "#1B9CFC", "#55E6C1", "#B33771", "#3B3B98", "#FD7272", "#25CCF7"
                 ];
                 this.usedColorIndex = 0;
+                this.isDarkMode = false;
                 
                 this.canvas = document.getElementById('grid-canvas');
                 this.ctx = this.canvas.getContext('2d');
@@ -229,6 +395,7 @@
                 document.getElementById('update-custom-grid').addEventListener('click', () => this.updateCustomGrid());
                 document.getElementById('cancel-custom').addEventListener('click', () => this.closeCustomModal());
                 document.getElementById('create-custom').addEventListener('click', () => this.createCustomShape());
+                document.getElementById('dark-mode-toggle').addEventListener('click', () => this.toggleDarkMode());
                 this.canvas.addEventListener('click', (e) => this.onCanvasClick(e));
                 this.itemList.addEventListener('click', (e) => this.onItemClick(e));
                 this.importPresetsInput.addEventListener('change', (e) => this.importPresets(e));
@@ -240,11 +407,45 @@
                 });
             }
 
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                document.body.classList.toggle('dark-mode', this.isDarkMode);
+                const toggle = document.getElementById('dark-mode-toggle');
+                toggle.textContent = this.isDarkMode ? '☀️' : '🌙';
+                toggle.classList.toggle('dark-mode', this.isDarkMode);
+                this.drawGrid();
+                this.saveData();
+                
+                // Force save immediately
+                const data = {
+                    gridRows: this.gridRows,
+                    gridCols: this.gridCols,
+                    disabledCells: this.disabledCells,
+                    items: this.items.map(item => ({
+                        name: item.name,
+                        shape: item.shape,
+                        color: item.color
+                    })),
+                    presets: this.presets,
+                    solution: this.solution,
+                    allowRotation: this.allowRotation,
+                    isDarkMode: this.isDarkMode
+                };
+                Cookies.set('gridData', JSON.stringify(data), { expires: 365 });
+            }
+
             drawGrid() {
                 this.canvas.width = this.canvas.clientWidth;
                 this.canvas.height = this.canvas.clientHeight;
                 const cellWidth = this.canvas.width / this.gridCols;
                 const cellHeight = this.canvas.height / this.gridRows;
+
+                // Set canvas background based on dark mode
+                if (this.isDarkMode) {
+                    this.canvas.style.backgroundColor = '#1a0a1a';
+                } else {
+                    this.canvas.style.backgroundColor = '#ffffff';
+                }
 
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -252,9 +453,13 @@
                     for (let c = 0; c < this.gridCols; c++) {
                         const x = c * cellWidth;
                         const y = r * cellHeight;
-                        this.ctx.fillStyle = this.disabledCells[r][c] === -1 ? '#ffcccc' : '#ffffff';
+                        if (this.isDarkMode) {
+                            this.ctx.fillStyle = this.disabledCells[r][c] === -1 ? '#4a1a1a' : '#1a0a1a';
+                        } else {
+                            this.ctx.fillStyle = this.disabledCells[r][c] === -1 ? '#ffcccc' : '#ffffff';
+                        }
                         this.ctx.fillRect(x, y, cellWidth, cellHeight);
-                        this.ctx.strokeStyle = '#d1d5db';
+                        this.ctx.strokeStyle = this.isDarkMode ? '#ff1493' : '#d1d5db';
                         this.ctx.strokeRect(x, y, cellWidth, cellHeight);
                     }
                 }
@@ -264,6 +469,669 @@
                 } else if (typeof this.previewingIndex === 'number' && this.items[this.previewingIndex]) {
                     this.previewItem(this.items[this.previewingIndex]);
                 }
+            }
+
+            showAddShapeMenu(event) {
+                const menu = document.createElement('div');
+                menu.className = 'absolute bg-white border rounded shadow-lg p-2';
+                menu.style.left = `${event.clientX}px`;
+                menu.style.top = `${event.clientY}px`;
+                menu.style.zIndex = 1000;
+                // Search bar (sticky)
+                const searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.placeholder = 'Search shape or preset...';
+                searchInput.className = 'w-full px-2 py-1 border rounded text-sm';
+                searchInput.style.position = 'sticky';
+                searchInput.style.top = '0';
+                searchInput.style.background = 'white';
+                menu.appendChild(searchInput);
+                // Container for list (scrollable)
+                const listDiv = document.createElement('div');
+                listDiv.style.maxHeight = '350px';
+                listDiv.style.overflowY = 'auto';
+                listDiv.className = 'mt-2';
+                menu.appendChild(listDiv);
+
+                function renderList(filter = '') {
+                    listDiv.innerHTML = '';
+                    // Custom shape always on top
+                    if ('custom shape'.includes(filter.toLowerCase())) {
+                        const customDiv = document.createElement('div');
+                        customDiv.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+                        customDiv.textContent = 'Custom Shape';
+                        customDiv.onclick = () => { app.showCustomModal(); document.body.removeChild(menu); };
+                        listDiv.appendChild(customDiv);
+                    }
+                    // Predefined shapes
+                    let foundPredefined = false;
+                    for (const [name, shape] of Object.entries(app.predefinedShapes)) {
+                        if (name.toLowerCase().includes(filter.toLowerCase())) {
+                            foundPredefined = true;
+                            const div = document.createElement('div');
+                            div.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+                            div.textContent = name;
+                            div.onclick = () => { app.addPredefinedItem(name); document.body.removeChild(menu); };
+                            listDiv.appendChild(div);
+                        }
+                    }
+                    if (foundPredefined) listDiv.appendChild(document.createElement('hr'));
+                    // Presets
+                    for (const name of Object.keys(app.presets)) {
+                        if (name.toLowerCase().includes(filter.toLowerCase())) {
+                            const div = document.createElement('div');
+                            div.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+                            div.textContent = `Preset: ${name}`;
+                            div.onclick = () => { app.addPresetItem(name); document.body.removeChild(menu); };
+                            listDiv.appendChild(div);
+                        }
+                    }
+                }
+                renderList();
+                searchInput.addEventListener('input', (e) => {
+                    renderList(e.target.value);
+                });
+
+                document.body.appendChild(menu);
+                setTimeout(() => {
+                    document.addEventListener('click', function handler(e) {
+                        if (!menu.contains(e.target)) {
+                            menu.remove();
+                            document.removeEventListener('click', handler);
+                        }
+                    });
+                }, 0);
+            }
+
+            showDeletePresetMenu(event) {
+                if (Object.keys(this.presets).length === 0) {
+                    alert('No presets to delete.');
+                    return;
+                }
+                const menu = document.createElement('div');
+                menu.className = 'absolute bg-white border rounded shadow-lg';
+                menu.style.left = `${event.clientX}px`;
+                menu.style.top = `${event.clientY}px`;
+
+                for (const name of Object.keys(this.presets)) {
+                    menu.innerHTML += `<div class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="app.deletePreset('${name}'); document.body.removeChild(this.parentElement)">${name}</div>`;
+                }
+
+                document.body.appendChild(menu);
+                // Remove menu on outside click
+                setTimeout(() => {
+                    document.addEventListener('click', function handler(e) {
+                        if (!menu.contains(e.target)) {
+                            menu.remove();
+                            document.removeEventListener('click', handler);
+                        }
+                    });
+                }, 0);
+            }
+
+            addPredefinedItem(shapeName) {
+                const shape = this.predefinedShapes[shapeName];
+                const name = `${shapeName} ${this.items.length + 1}`;
+                const color = this.randomColor(this.items.length);
+                this.items.push({ name, shape, color });
+                this.solution = null;
+                this.updateItemList();
+                this.saveData();
+                this.drawGrid();
+            }
+
+            addPresetItem(presetName) {
+                const shape = this.presets[presetName];
+                const name = `${presetName} ${this.items.length + 1}`;
+                const color = this.randomColor(this.items.length);
+                this.items.push({ name, shape, color });
+                this.solution = null;
+                this.updateItemList();
+                this.saveData();
+                this.drawGrid();
+            }
+
+            deletePreset(presetName) {
+                delete this.presets[presetName];
+                this.saveData();
+                alert(`Preset '${presetName}' deleted.`);
+                // Update UI after deletion
+                this.drawGrid();
+            }
+
+            updateItemList() {
+                this.itemList.innerHTML = '';
+                this.items.forEach((item, index) => {
+                    // List item container
+                    const li = document.createElement('li');
+                    li.className = 'px-2 py-1 flex items-center justify-between';
+                    // Name
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = item.name;
+                    nameSpan.dataset.index = index;
+                    nameSpan.addEventListener('mouseenter', () => {
+                        this.previewingIndex = index;
+                        this.drawGrid();
+                    });
+                    nameSpan.addEventListener('mouseleave', () => {
+                        this.previewingIndex = null;
+                        this.drawGrid();
+                    });
+                    // Icon group (right)
+                    const iconGroup = document.createElement('span');
+                    iconGroup.className = 'flex gap-2 items-center ml-2';
+                    // Duplicate icon
+                    const duplicate = document.createElement('span');
+                    duplicate.textContent = '📄';
+                    duplicate.className = 'cursor-pointer text-lg align-middle hover:text-blue-600 transition-colors';
+                    duplicate.title = 'Duplicate';
+                    duplicate.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.duplicateItem(index);
+                    });
+                    // Trash can icon
+                    const trash = document.createElement('span');
+                    trash.textContent = '🗑️';
+                    trash.className = 'cursor-pointer text-lg align-middle hover:text-red-600 transition-colors';
+                    trash.title = 'Delete';
+                    trash.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteItem(index);
+                    });
+                    iconGroup.appendChild(duplicate);
+                    iconGroup.appendChild(trash);
+                    li.appendChild(nameSpan);
+                    li.appendChild(iconGroup);
+                    this.itemList.appendChild(li);
+                    // Divider
+                    if (index < this.items.length - 1) {
+                        const hr = document.createElement('hr');
+                        hr.className = 'my-1 border-gray-300';
+                        this.itemList.appendChild(hr);
+                    }
+                });
+            }
+
+            onItemClick(event) {
+                // No-op for preview system on hover
+            }
+
+            previewItem(item) {
+                const shape = item.shape;
+                const color = item.color;
+                const cellWidth = this.canvas.width / this.gridCols;
+                const cellHeight = this.canvas.height / this.gridRows;
+                const startRow = Math.max(0, Math.floor((this.gridRows - shape.length) / 2));
+                const startCol = Math.max(0, Math.floor((this.gridCols - shape[0].length) / 2));
+
+                this.ctx.save();
+                this.ctx.globalAlpha = 0.5;
+                for (let r = 0; r < shape.length; r++) {
+                    for (let c = 0; c < shape[0].length; c++) {
+                        if (shape[r][c] === 1) {
+                            this.ctx.fillStyle = color;
+                            this.ctx.fillRect((startCol + c) * cellWidth, (startRow + r) * cellHeight, cellWidth, cellHeight);
+                        }
+                    }
+                }
+                this.ctx.globalAlpha = 1.0;
+                for (let r = 0; r < shape.length; r++) {
+                    for (let c = 0; c < shape[0].length; c++) {
+                        if (shape[r][c] === 1) {
+                            this.ctx.strokeStyle = '#222';
+                            this.ctx.lineWidth = 2;
+                            this.ctx.strokeRect((startCol + c) * cellWidth, (startRow + r) * cellHeight, cellWidth, cellHeight);
+                        }
+                    }
+                }
+                this.ctx.restore();
+            }
+
+            deleteSelected() {
+                const indices = Array.from(this.selectedItems).sort((a, b) => b - a);
+                indices.forEach(index => this.items.splice(index, 1));
+                this.selectedItems.clear();
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            deleteItem(index) {
+                this.items.splice(index, 1);
+                this.previewingIndex = null;
+                this.solution = null;
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            // Helper to get next available numbered name for a base name
+            getNextItemName(baseName) {
+                // Find all items with the same base name and a number
+                let maxNum = 0;
+                const regex = new RegExp(`^${baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} (\\d+)$`);
+                for (const item of this.items) {
+                    const match = item.name.match(regex);
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        if (num > maxNum) maxNum = num;
+                    }
+                }
+                return `${baseName} ${maxNum + 1}`;
+            }
+            duplicateItem(index) {
+                const item = this.items[index];
+                // Try to extract base name and number
+                let baseName = item.name;
+                let match = item.name.match(/^(.*) (\d+)$/);
+                if (match) {
+                    baseName = match[1];
+                }
+                const newName = this.getNextItemName(baseName);
+                // Deep copy shape array
+                const newShape = item.shape.map(row => [...row]);
+                // Pick color not same as neighbors
+                const color = this.randomColor(index + 1);
+                const newItem = {
+                    name: newName,
+                    shape: newShape,
+                    color: color
+                };
+                this.items.splice(index + 1, 0, newItem);
+                this.solution = null;
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            randomColor() {
+                // Use each color in this.colors once before repeating
+                if (this.usedColorIndex < this.colors.length) {
+                    return this.colors[this.usedColorIndex++];
+                } else {
+                    // After all colors are used, pick randomly
+                return this.colors[Math.floor(Math.random() * this.colors.length)];
+                }
+            }
+
+            updateGrid() {
+                const newRows = parseInt(document.getElementById('rows-input').value);
+                const newCols = parseInt(document.getElementById('cols-input').value);
+                if (newRows <= 0 || newCols <= 0 || isNaN(newRows) || isNaN(newCols)) {
+                    alert('Please enter positive integers.');
+                    return;
+                }
+                const newDisabled = Array(newRows).fill().map(() => Array(newCols).fill(0));
+                const minRows = Math.min(this.gridRows, newRows);
+                const minCols = Math.min(this.gridCols, newCols);
+                for (let r = 0; r < minRows; r++) {
+                    for (let c = 0; c < minCols; c++) {
+                        newDisabled[r][c] = this.disabledCells[r][c];
+                    }
+                }
+                this.gridRows = newRows;
+                this.gridCols = newCols;
+                this.disabledCells = newDisabled;
+                this.solution = null;
+                this.drawGrid();
+                this.saveData();
+            }
+
+            onCanvasClick(event) {
+                const cellWidth = this.canvas.width / this.gridCols;
+                const cellHeight = this.canvas.height / this.gridRows;
+                const col = Math.floor(event.offsetX / cellWidth);
+                const row = Math.floor(event.offsetY / cellHeight);
+                if (row >= 0 && row < this.gridRows && col >= 0 && col < this.gridCols) {
+                    this.disabledCells[row][col] = this.disabledCells[row][col] === 0 ? -1 : 0;
+                    this.solution = null;
+                    this.drawGrid();
+                    this.saveData();
+                }
+            }
+
+            solveGrid() {
+                if (this.items.length === 0) {
+                    alert('Please add items to solve.');
+                    return;
+                }
+                // Count available grid cells (not disabled)
+                let available = 0;
+                for (let r = 0; r < this.gridRows; r++) {
+                    for (let c = 0; c < this.gridCols; c++) {
+                        if (this.disabledCells[r][c] === 0) available++;
+                    }
+                }
+                // Count total item cells needed
+                let needed = 0;
+                for (const item of this.items) {
+                    for (const row of item.shape) {
+                        for (const cell of row) {
+                            if (cell === 1) needed++;
+                        }
+                    }
+                }
+                if (needed > available) {
+                    alert('Not enough space in the grid for all items!');
+                    return;
+                }
+                // Timeout logic
+                const startTime = performance.now();
+                const maxTime = 2000; // ms
+                const timedSolver = (grid, items, itemIndex = 0) => {
+                    if (performance.now() - startTime > maxTime) return 'TIMEOUT';
+                    if (itemIndex >= items.length) return grid;
+                    const shape = items[itemIndex].shape;
+                    const maxRot = this.allowRotation ? 4 : 1;
+                    for (let k = 0; k < maxRot; k++) {
+                        let rotated = shape;
+                        for (let i = 0; i < k; i++) {
+                            rotated = this.rotateShape(rotated);
+                        }
+                        for (let r = 0; r <= grid.length - rotated.length; r++) {
+                            for (let c = 0; c <= grid[0].length - rotated[0].length; c++) {
+                                if (this.canPlaceItem(grid, rotated, r, c)) {
+                                    const newGrid = grid.map(row => [...row]);
+                                    for (let i = 0; i < rotated.length; i++) {
+                                        for (let j = 0; j < rotated[0].length; j++) {
+                                            if (rotated[i][j] === 1) {
+                                                newGrid[r + i][c + j] = itemIndex + 1;
+                                            }
+                                        }
+                                    }
+                                    const result = timedSolver(newGrid, items, itemIndex + 1);
+                                    if (result && result !== 'TIMEOUT') return result;
+                                    if (result === 'TIMEOUT') return 'TIMEOUT';
+                                }
+                            }
+                        }
+                    }
+                    return null;
+                };
+                let result = timedSolver(this.disabledCells.map(row => [...row]), [...this.items]);
+                if (result === 'TIMEOUT') {
+                    alert('Solving took too long or no solution found.');
+                    this.solution = null;
+                } else if (!result) {
+                    alert('No solution found.');
+                    this.solution = null;
+                } else {
+                    this.solution = result;
+                }
+                this.drawGrid();
+                this.saveData();
+            }
+
+            backtrackingSolver(grid, items, itemIndex = 0) {
+                if (itemIndex >= items.length) return grid;
+                const shape = items[itemIndex].shape;
+                const maxRot = this.allowRotation ? 4 : 1;
+                for (let k = 0; k < maxRot; k++) {
+                    let rotated = shape;
+                    for (let i = 0; i < k; i++) {
+                        rotated = this.rotateShape(rotated);
+                    }
+                    for (let r = 0; r <= grid.length - rotated.length; r++) {
+                        for (let c = 0; c <= grid[0].length - rotated[0].length; c++) {
+                            if (this.canPlaceItem(grid, rotated, r, c)) {
+                                const newGrid = grid.map(row => [...row]);
+                                for (let i = 0; i < rotated.length; i++) {
+                                    for (let j = 0; j < rotated[0].length; j++) {
+                                        if (rotated[i][j] === 1) {
+                                            newGrid[r + i][c + j] = itemIndex + 1;
+                                        }
+                                    }
+                                }
+                                const result = this.backtrackingSolver(newGrid, items, itemIndex + 1);
+                                if (result) return result;
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+
+            rotateShape(shape) {
+                const rows = shape.length;
+                const cols = shape[0].length;
+                const rotated = Array(cols).fill().map(() => Array(rows).fill(0));
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        rotated[c][rows - 1 - r] = shape[r][c];
+                    }
+                }
+                return rotated;
+            }
+
+            canPlaceItem(grid, shape, startRow, startCol) {
+                if (startRow + shape.length > grid.length || startCol + shape[0].length > grid[0].length) return false;
+                for (let r = 0; r < shape.length; r++) {
+                    for (let c = 0; c < shape[0].length; c++) {
+                        if (shape[r][c] === 1 && (startRow + r >= grid.length || startCol + c >= grid[0].length || grid[startRow + r][startCol + c] !== 0)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            displaySolution() {
+                const cellWidth = this.canvas.width / this.gridCols;
+                const cellHeight = this.canvas.height / this.gridRows;
+                for (let r = 0; r < this.solution.length; r++) {
+                    for (let c = 0; c < this.solution[0].length; c++) {
+                        if (this.solution[r][c] > 0) {
+                            const color = this.items[this.solution[r][c] - 1].color;
+                            this.ctx.fillStyle = color;
+                            this.ctx.fillRect(c * cellWidth, r * cellHeight, cellWidth, cellHeight);
+                            this.ctx.strokeStyle = '#d1d5db';
+                            this.ctx.strokeRect(c * cellWidth, r * cellHeight, cellWidth, cellHeight);
+                        }
+                    }
+                }
+            }
+
+            showCustomModal() {
+                this.customModal.classList.remove('hidden');
+                this.updateCustomGrid();
+            }
+
+            closeCustomModal() {
+                this.customModal.classList.add('hidden');
+            }
+
+            updateCustomGrid() {
+                const rows = parseInt(document.getElementById('custom-rows').value);
+                const cols = parseInt(document.getElementById('custom-cols').value);
+                if (rows <= 0 || cols <= 0 || rows > 10 || cols > 10 || isNaN(rows) || isNaN(cols)) {
+                    alert('Enter integers between 1 and 10.');
+                    return;
+                }
+                this.customGrid.style.gridTemplateRows = `repeat(${rows}, 30px)`;
+                this.customGrid.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+                this.customGrid.innerHTML = '';
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell border bg-white';
+                        cell.dataset.row = r;
+                        cell.dataset.col = c;
+                        cell.addEventListener('click', () => {
+                            cell.classList.toggle('bg-blue-500');
+                            cell.classList.toggle('bg-white');
+                        });
+                        this.customGrid.appendChild(cell);
+                    }
+                }
+            }
+
+            createCustomShape() {
+                const rows = parseInt(document.getElementById('custom-rows').value);
+                const cols = parseInt(document.getElementById('custom-cols').value);
+                const shape = Array(rows).fill().map(() => Array(cols).fill(0));
+                let hasContent = false;
+                this.customGrid.querySelectorAll('.grid-cell').forEach(cell => {
+                    const r = parseInt(cell.dataset.row);
+                    const c = parseInt(cell.dataset.col);
+                    if (cell.classList.contains('bg-blue-500')) {
+                        shape[r][c] = 1;
+                        hasContent = true;
+                    }
+                });
+                if (!hasContent) {
+                    alert('Create a non-empty shape.');
+                    return;
+                }
+                const rowsWithContent = shape.map((row, i) => row.includes(1) ? i : -1).filter(i => i !== -1);
+                const colsWithContent = shape[0].map((_, c) => shape.some(row => row[c] === 1) ? c : -1).filter(c => c !== -1);
+                const minRow = Math.min(...rowsWithContent);
+                const maxRow = Math.max(...rowsWithContent);
+                const minCol = Math.min(...colsWithContent);
+                const maxCol = Math.max(...colsWithContent);
+                const trimmedShape = shape.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
+                const name = document.getElementById('preset-name').value.trim() || `Custom ${this.items.length + 1}`;
+                const savePreset = document.getElementById('save-preset').checked;
+                if (savePreset && !name) {
+                    alert('Please enter a name to save as preset.');
+                    return;
+                }
+                this.items.push({ name, shape: trimmedShape, color: this.randomColor() });
+                if (savePreset) {
+                    this.presets[name] = trimmedShape;
+                }
+                this.updateItemList();
+                this.saveData();
+                this.closeCustomModal();
+                this.drawGrid();
+            }
+
+            saveData() {
+                const data = {
+                    gridRows: this.gridRows,
+                    gridCols: this.gridCols,
+                    disabledCells: this.disabledCells,
+                    items: this.items.map(item => ({
+                        name: item.name,
+                        shape: item.shape,
+                        color: item.color
+                    })),
+                    presets: this.presets,
+                    solution: this.solution,
+                    allowRotation: this.allowRotation,
+                    isDarkMode: this.isDarkMode
+                };
+                Cookies.set('gridData', JSON.stringify(data), { expires: 365 });
+            }
+
+            loadData() {
+                const data = Cookies.get('gridData');
+                if (data) {
+                    try {
+                        const parsed = JSON.parse(data);
+                        this.gridRows = parsed.gridRows || 5;
+                        this.gridCols = parsed.gridCols || 5;
+                        this.disabledCells = parsed.disabledCells || Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
+                        this.items = parsed.items || [];
+                        this.presets = parsed.presets || {};
+                        this.solution = parsed.solution || null;
+                        this.allowRotation = typeof parsed.allowRotation === 'boolean' ? parsed.allowRotation : true;
+                        this.allowRotationInput.checked = this.allowRotation;
+                        this.isDarkMode = typeof parsed.isDarkMode === 'boolean' ? parsed.isDarkMode : false;
+                        
+                        // Apply dark mode immediately if it was saved
+                        if (this.isDarkMode) {
+                            document.body.classList.add('dark-mode');
+                            const toggle = document.getElementById('dark-mode-toggle');
+                            if (toggle) {
+                                toggle.textContent = '☀️';
+                                toggle.classList.add('dark-mode');
+                            }
+                            // Set canvas background immediately for dark mode
+                            if (this.canvas) {
+                                this.canvas.style.backgroundColor = '#1a0a1a';
+                            }
+                        }
+                        
+                        document.getElementById('rows-input').value = this.gridRows;
+                        document.getElementById('cols-input').value = this.gridCols;
+                        this.updateItemList();
+                    } catch (error) {
+                        console.error('Error loading saved data:', error);
+                    }
+                }
+            }
+
+            resetAll() {
+                if (!confirm('Are you sure you want to reset all items and disabled grid cells? Presets will be kept.')) return;
+                this.items = [];
+                this.selectedItems.clear();
+                this.disabledCells = Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
+                this.solution = null;
+                this.usedColorIndex = 0;
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            clearAllData() {
+                if (!confirm('Are you sure you want to clear ALL saved data? This will remove all items, grid, disables, and presets.')) return;
+                Cookies.remove('gridData');
+                this.gridRows = 5;
+                this.gridCols = 5;
+                this.items = [];
+                this.presets = {};
+                this.disabledCells = Array(this.gridRows).fill().map(() => Array(this.gridCols).fill(0));
+                this.solution = null;
+                this.selectedItems.clear();
+                this.usedColorIndex = 0;
+                this.isDarkMode = false;
+                document.body.classList.remove('dark-mode');
+                document.getElementById('dark-mode-toggle').textContent = '🌙';
+                document.getElementById('dark-mode-toggle').classList.remove('dark-mode');
+                document.getElementById('rows-input').value = this.gridRows;
+                document.getElementById('cols-input').value = this.gridCols;
+                this.updateItemList();
+                this.drawGrid();
+                this.saveData();
+            }
+
+            async importPresets(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    const text = await file.text();
+                    const json = JSON.parse(text);
+                    if (typeof json === 'object') {
+                        Object.assign(this.presets, json);
+                        this.saveData();
+                        alert('Presets imported!');
+                    } else {
+                        alert('Invalid preset file.');
+                    }
+                } catch (err) {
+                    alert('Failed to import presets.');
+                }
+            }
+
+            exportPresets() {
+                const dataStr = JSON.stringify(this.presets, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'presets.json';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
+
+            clearSolve() {
+                this.solution = null;
+                this.drawGrid();
+                this.saveData();
             }
 
             showAddShapeMenu(event) {
@@ -905,6 +1773,24 @@
             }
         }
 
+        // Check for saved dark mode immediately
+        const savedData = Cookies.get('gridData');
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                if (parsed.isDarkMode === true) {
+                    document.body.classList.add('dark-mode');
+                    // Set canvas background immediately if dark mode was saved
+                    const canvas = document.getElementById('grid-canvas');
+                    if (canvas) {
+                        canvas.style.backgroundColor = '#1a0a1a';
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking saved dark mode:', error);
+            }
+        }
+        
         window.app = new GridInventorySolver();
     </script>
     <script>
